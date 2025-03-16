@@ -1,6 +1,92 @@
-from flask import Flask, request, render_template
-from google.cloud import bigquery
+from flask import Flask, request, render_template, redirect, url_for, session
+from flask_session import Session
+from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
+from google_auth_oauthlib.flow import Flow
+import google.auth.transport.requests
+import google.oauth2.id_token
+import json
 import os
+
+# יצירת אפליקציית Flask
+app = Flask(__name__, template_folder="templates")
+app.secret_key = "supersecretkey"  # שנה למפתח חזק יותר
+
+# הגדרות Flask-Session
+app.config['SESSION_TYPE'] = 'filesystem'
+Session(app)
+
+# הגדרות Flask-Login
+login_manager = LoginManager()
+login_manager.init_app(app)
+login_manager.login_view = "login"
+
+# מחלקת משתמש
+class User(UserMixin):
+    def __init__(self, user_id, name, email):
+        self.id = user_id
+        self.name = name
+        self.email = email
+
+# מאגר משתמשים זמני (כדאי לשמור ב-DB אמיתי)
+users = {}
+
+@login_manager.user_loader
+def load_user(user_id):
+    return users.get(user_id)
+
+# הגדרת Google OAuth 2.0
+GOOGLE_CLIENT_SECRET_FILE = "client_secret.json"
+
+flow = Flow.from_client_secrets_file(
+    GOOGLE_CLIENT_SECRET_FILE,
+    scopes=["openid", "email", "profile"],
+    redirect_uri="http://localhost:8080/callback"
+)
+
+# נתיב התחברות
+@app.route('/login')
+def login():
+    authorization_url, state = flow.authorization_url()
+    session['state'] = state
+    return redirect(authorization_url)
+
+# נתיב callback של גוגל
+@app.route('/callback')
+def callback():
+    flow.fetch_token(authorization_response=request.url)
+
+    credentials = flow.credentials
+    request_session = google.auth.transport.requests.Request()
+    id_info = google.oauth2.id_token.verify_oauth2_token(
+        credentials.id_token, request_session
+    )
+
+    user_id = id_info['sub']
+    user_email = id_info['email']
+    user_name = id_info.get('name', user_email)
+
+    user = User(user_id, user_name, user_email)
+    users[user_id] = user
+    login_user(user)
+
+    return redirect(url_for("home"))
+
+# נתיב התנתקות
+@app.route('/logout')
+@login_required
+def logout():
+    logout_user()
+    return redirect(url_for("home"))
+
+# שינוי נתיב הבית כך שידרוש התחברות
+@app.route('/')
+@login_required
+def home():
+    return render_template('index.html', user=current_user)
+
+# הפעלת השרת
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=8080)
 
 # 🔍 בדיקות לוגים על משתנה הסביבה והקובץ
 secrets_path = os.environ.get("GOOGLE_APPLICATION_CREDENTIALS", "/etc/secrets/telephones-449210-ea0631866678.json")
