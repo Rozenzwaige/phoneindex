@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="he">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>תוצאות חיפוש</title>
+    <style>
+        body { 
+            text-align: center; 
+            font-family: Arial, sans-serif; 
+            direction: rtl; 
+            background-color: #fff; 
+        }
+
+        .container { 
+            max-width: 650px;  
+            margin: auto; 
+            padding: 20px; 
+        }
+
+        .search-box {
+            width: 100%;
+            background: #f0f0f0;
+            padding: 10px;
+            border-radius: 8px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+        }
+
+        select, input, button {
+            font-size: 16px;
+            border: none;
+            outline: none;
+            background: none;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 10px;
+            background: white;
+            border-radius: 8px;
+        }
+
+        button {
+            cursor: pointer;
+            padding: 10px 15px;
+        }
+
+        /* טבלה */
+        table {
+            width: 100%; /* כדי שיהיה זהה לשורת החיפוש */
+            border-collapse: collapse;
+            margin-top: 20px;
+            border-radius: 8px; /* פינות מעוגלות */
+            overflow: hidden; /* כדי שהרדיוס יעבוד */
+        }
+
+        th, td {
+            padding: 10px;
+            text-align: right;
+        }
+
+        th {
+            background-color: #f0f0f0;
+            font-weight: bold;
+        }
+
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+
+        tr:nth-child(odd) {
+            background-color: #ffffff;
+        }
+
+        /* עמודות */
+        .phone-column { width: 30%; }	
+        .title-column { width: 40%; }
+        .name-column { width: 30%; }  
+    </style>
+</head>
+<body>
+
+    <h1>חיפוש במאגר אנשי קשר</h1>
+    <div class="container">
+        <form action="/search" method="GET">
+            <div class="search-box">
+                <select name="search_type">
+                    <option value="free" {% if search_type == "free" %}selected{% endif %}>חיפוש חופשי</option>
+                    <option value="name" {% if search_type == "name" %}selected{% endif %}>שם</option>
+                    <option value="title" {% if search_type == "title" %}selected{% endif %}>טייטל</option>
+                </select>
+                <input type="text" name="query" placeholder="מה תרצה לחפש?" value="{{ query }}">
+                <button type="submit">חפש</button>
+            </div>
+        </form>
+
+        {% if results %}
+            <table>
+                <tr>
+                    <th class="name-column">שם</th>  
+                    <th class="title-column">טייטל</th>  
+                    <th class="phone-column">טלפון</th>  
+                </tr>
+                {% for result in results %}
+                <tr>
+                    <td class="name-column">{{ result.name }}</td>
+                    <td class="title-column">{{ result.title }}</td>
+                    <td class="phone-column">{{ result.phone }}</td>
+                </tr>
+                {% endfor %}
+            </table>
+        {% else %}
+            <p class="no-results">לא נמצאו תוצאות.</p>
+        {% endif %}
+    </div>
+
+</body>
+</html>
