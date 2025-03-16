@@ -2,6 +2,7 @@ from flask import Flask, request, render_template, redirect, url_for, session
 from flask_session import Session
 from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
 from google_auth_oauthlib.flow import Flow
+from google.cloud import bigquery
 import google.auth.transport.requests
 import google.oauth2.id_token
 import json
