@@ -40,8 +40,19 @@ GOOGLE_CLIENT_SECRET_FILE = "client_secret.json"
 flow = Flow.from_client_secrets_file(
     GOOGLE_CLIENT_SECRET_FILE,
     scopes=["openid", "email", "profile"],
-    redirect_uri="http://localhost:8080/callback"
+    redirect_uri="https://telephone-data.onrender.com/callback"  # עדכון לכתובת הנכונה
 )
+
+import os
+
+REDIRECT_URI = "https://telephone-data.onrender.com/callback" if os.getenv("FLASK_ENV") == "production" else "http://localhost:8080/callback"
+
+flow = Flow.from_client_secrets_file(
+    GOOGLE_CLIENT_SECRET_FILE,
+    scopes=["openid", "email", "profile"],
+    redirect_uri=REDIRECT_URI
+)
+
 
 # נתיב התחברות
 @app.route('/login')
