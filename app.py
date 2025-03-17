@@ -16,6 +16,10 @@ app.secret_key = "supersecretkey"  # שנה למפתח חזק יותר
 app.config['SESSION_TYPE'] = 'filesystem'
 Session(app)
 
+@app.route('/')
+def home():
+    return render_template('index.html', user=current_user)
+
 # הגדרות Flask-Login
 login_manager = LoginManager()
 login_manager.init_app(app)
@@ -58,7 +62,7 @@ def callback():
 
     credentials = flow.credentials
     request_session = google.auth.transport.requests.Request()
-    id_info = google.oauth2.id_token.verify_oauth2_token(
+    id_info = .oauth2.id_token.verify_oauth2_token(
         credentials.id_token, request_session
     )
 
