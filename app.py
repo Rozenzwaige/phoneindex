@@ -35,14 +35,6 @@ users = {}
 def load_user(user_id):
     return users.get(user_id)
 
-# הגדרת Google OAuth 2.0
-GOOGLE_CLIENT_SECRET_FILE = "client_secret.json"
-flow = Flow.from_client_secrets_file(
-    GOOGLE_CLIENT_SECRET_FILE,
-    scopes=["openid", "email", "profile"],
-    redirect_uri="https://telephone-data.onrender.com/callback"  # עדכון לכתובת הנכונה
-)
-
 import os
 
 REDIRECT_URI = "https://telephone-data.onrender.com/callback" if os.getenv("FLASK_ENV") == "production" else "http://localhost:8080/callback"
@@ -64,6 +56,9 @@ def login():
 # נתיב callback של גוגל
 @app.route('/callback')
 def callback():
+    authorization_url, state = flow.authorization_url()
+    session['state'] = state
+    return redirect(authorization_url)
     flow.fetch_token(authorization_response=request.url)
     credentials = flow.credentials
     request_session = google.auth.transport.requests.Request()
