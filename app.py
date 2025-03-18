@@ -35,8 +35,8 @@ users = {}
 def load_user(user_id):
     return users.get(user_id)
 
-import os
-
+# הגדרת Google OAuth 2.0
+GOOGLE_CLIENT_SECRET_FILE = "client_secret.json"
 REDIRECT_URI = "https://telephone-data.onrender.com/callback" if os.getenv("FLASK_ENV") == "production" else "http://localhost:8080/callback"
 
 flow = Flow.from_client_secrets_file(
@@ -45,20 +45,20 @@ flow = Flow.from_client_secrets_file(
     redirect_uri=REDIRECT_URI
 )
 
-
 # נתיב התחברות
 @app.route('/login')
 def login():
     authorization_url, state = flow.authorization_url()
-    session['state'] = state
+    session['state'] = state  # שמירה על state
     return redirect(authorization_url)
 
 # נתיב callback של גוגל
 @app.route('/callback')
 def callback():
-    authorization_url, state = flow.authorization_url()
-    session['state'] = state
-    return redirect(authorization_url)
+    # ודא שה-state תואם
+    if request.args.get('state') != session['state']:
+        return "❌ שגיאה: לא תואם state", 400
+    
     flow.fetch_token(authorization_response=request.url)
     credentials = flow.credentials
     request_session = google.auth.transport.requests.Request()
@@ -117,7 +117,7 @@ def search():
     conditions = " AND ".join(["(name LIKE @search OR title LIKE @search)" for _ in words])
     sql = f"""
         SELECT name, title, phone 
-        FROM `telephones-449210.ALLPHONES.phones_fixed` 
+        FROM telephones-449210.ALLPHONES.phones_fixed 
         WHERE {conditions}
     """
     try:
