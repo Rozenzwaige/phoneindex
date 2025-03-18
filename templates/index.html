@@ -10,6 +10,8 @@
             font-family: Arial, sans-serif; 
             direction: rtl; 
             background-color: #fff; 
+            margin: 0;
+            padding: 0;
         }
 
         .container { 
@@ -38,6 +40,7 @@
 
         input[type="text"] {
             width: 100%;
+            max-width: 100%;
             padding: 10px;
             background: white;
             border-radius: 8px;
@@ -46,17 +49,38 @@
         button {
             cursor: pointer;
             padding: 10px 15px;
+            background-color: #4CAF50;
+            color: white;
+            border-radius: 8px;
+            transition: background-color 0.3s;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+
+        .login-link {
+            display: block;
+            margin-top: 10px;
+            font-size: 16px;
+            text-decoration: none;
+            color: #007bff;
+        }
+
+        .login-link:hover {
+            text-decoration: underline;
         }
     </style>
 </head>
 <body>
     <h1>חיפוש במאגר אנשי קשר</h1>
-  
+
+    <!-- הוספתי את הצ'ק אם המשתמש מחובר כאן בקוד -->
     {% if user.is_authenticated %}
-    <p>שלום, {{ user.name }}! <a href="{{ url_for('logout') }}">התנתק</a></p>
-{% else %}
-    <a href="{{ url_for('login') }}">התחבר עם גוגל</a>
-{% endif %}
+        <p>שלום, {{ user.name }}! <a href="{{ url_for('logout') }}">התנתק</a></p>
+    {% else %}
+        <a class="login-link" href="{{ url_for('login') }}">התחבר עם גוגל</a>
+    {% endif %}
 
     <div class="container">
         <form action="/search" method="GET">
@@ -66,7 +90,7 @@
                     <option value="name">שם</option>
                     <option value="title">טייטל</option>
                 </select>
-                <input type="text" name="query" placeholder="מה תרצה לחפש?">
+                <input type="text" name="query" placeholder="מה תרצה לחפש?" required>
                 <button type="submit">חפש</button>
             </div>
         </form>
