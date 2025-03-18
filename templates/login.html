@@ -25,21 +25,42 @@
             font-size: 18px;
             border-radius: 5px;
             display: inline-block;
+            transition: background-color 0.3s;
         }
         .login-btn:hover {
             background-color: #357ae8;
         }
+        .loading {
+            display: none;
+            margin-top: 10px;
+            font-size: 18px;
+            color: #357ae8;
+        }
+        .error-message {
+            color: red;
+            margin-top: 10px;
+        }
     </style>
+    <script>
+        // פונקציה להציג הודעת "מתחבר..." ולהסיר את הכפתור
+        function showLoading() {
+            document.getElementById('login-btn').style.display = 'none';
+            document.getElementById('loading-message').style.display = 'block';
+        }
+    </script>
 </head>
 <body>
 
     <div class="login-container">
         <h2>כניסה למערכת</h2>
         <p>יש להתחבר באמצעות חשבון Google כדי להמשיך</p>
-        <a href="/login" class="login-btn">🔑 התחבר עם Google</a>
+        
+        <a href="/login" class="login-btn" id="login-btn" onclick="showLoading()">🔑 התחבר עם Google</a>
+        
+        <p id="loading-message" class="loading">מתחבר...</p>
 
         {% if error %}
-        <p style="color: red;">{{ error }}</p>
+        <p class="error-message">{{ error }}</p>
         {% endif %}
     </div>
 
