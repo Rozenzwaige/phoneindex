@@ -50,16 +50,18 @@
 
         /* טבלה */
         table {
-            width: 100%; /* כדי שיהיה זהה לשורת החיפוש */
+            width: 100%;
             border-collapse: collapse;
             margin-top: 20px;
-            border-radius: 8px; /* פינות מעוגלות */
-            overflow: hidden; /* כדי שהרדיוס יעבוד */
+            border-radius: 8px;
+            overflow: hidden;
+            table-layout: fixed; /* כדי למנוע גלישה של הטקסט */
         }
 
         th, td {
             padding: 10px;
             text-align: right;
+            word-wrap: break-word; /* כדי למנוע גלישה */
         }
 
         th {
@@ -79,6 +81,25 @@
         .phone-column { width: 30%; }	
         .title-column { width: 40%; }
         .name-column { width: 30%; }  
+
+        .no-results {
+            color: red;
+            font-size: 18px;
+        }
+
+        /* עיצוב מספרי טלפון */
+        .phone-column a {
+            text-decoration: none;
+            color: #4285F4;
+        }
+        .phone-column a:hover {
+            text-decoration: underline;
+        }
+
+        /* התאמה למובייל */
+        table {
+            overflow-x: auto;
+        }
     </style>
 </head>
 <body>
@@ -106,9 +127,15 @@
                 </tr>
                 {% for result in results %}
                 <tr>
-                    <td class="name-column">{{ result.name }}</td>
-                    <td class="title-column">{{ result.title }}</td>
-                    <td class="phone-column">{{ result.phone }}</td>
+                    <td class="name-column">{{ result.name if result.name else 'לא זמין' }}</td>
+                    <td class="title-column">{{ result.title if result.title else 'לא זמין' }}</td>
+                    <td class="phone-column">
+                        {% if result.phone %}
+                            <a href="tel:{{ result.phone }}">{{ result.phone }}</a>
+                        {% else %}
+                            לא זמין
+                        {% endif %}
+                    </td>
                 </tr>
                 {% endfor %}
             </table>
