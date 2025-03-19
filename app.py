@@ -7,6 +7,8 @@ import google.auth.transport.requests
 import google.oauth2.id_token
 import json
 import os
+import logging
+from werkzeug.exceptions import HTTPException
 
 # יצירת אפליקציית Flask
 app = Flask(__name__, template_folder="templates")
@@ -20,6 +22,7 @@ app.config['SESSION_COOKIE_NAME'] = 'my_session'
 app.config['SESSION_COOKIE_HTTPONLY'] = True
 app.config['SESSION_COOKIE_SECURE'] = True  # חובה בפרודקשן עם HTTPS
 app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
+
 Session(app)
 
 # הגדרות Flask-Login
@@ -64,22 +67,22 @@ def callback():
     # ודא שה-state תואם
     if 'state' not in session or request.args.get('state') != session['state']:
         return "❌ שגיאה: לא תואם state", 400
-    
+
     flow.fetch_token(authorization_response=request.url)
     credentials = flow.credentials
     request_session = google.auth.transport.requests.Request()
     id_info = google.oauth2.id_token.verify_oauth2_token(
         credentials.id_token, request_session
     )
-    
+
     user_id = id_info['sub']
     user_email = id_info['email']
     user_name = id_info.get('name', user_email)
-    
+
     user = User(user_id, user_name, user_email)
     users[user_id] = user
     login_user(user)
-    
+
     return redirect(url_for("home"))
 
 # נתיב התנתקות
@@ -114,17 +117,18 @@ def home():
 def search():
     if client is None:
         return "❌ שגיאה: אין חיבור ל-BigQuery", 500
-    
+
     query = request.args.get('query', '').strip()
     search_type = request.args.get('search_type', 'free')
+
     if not query:
         return render_template('results.html', results=[], query=query, search_type=search_type)
 
     words = query.split()
     conditions = " AND ".join(["(name LIKE @search OR title LIKE @search)" for _ in words])
     sql = f"""
-        SELECT name, title, phone 
-        FROM telephones-449210.ALLPHONES.phones_fixed 
+        SELECT name, title, phone
+        FROM telephones-449210.ALLPHONES.phones_fixed
         WHERE {conditions}
     """
     try:
@@ -136,13 +140,19 @@ def search():
     except Exception as e:
         print(f"❌ שגיאה בביצוע השאילתה: {e}")
         return "❌ שגיאה בחיפוש נתונים", 500
-    
+
     return render_template('results.html', results=data, query=query, search_type=search_type)
 
 # נתיב Health Check
 @app.route('/health', methods=['GET'])
 def health_check():
     return {"status": "ok" if client else "error"}, 200 if client else 500
+
+# טיפול בשגיאות
+@app.errorhandler(HTTPException)
+def handle_exception(error):
+    app.logger.error(f"HTTP error occurred: {error}")
+    return f"Error: {error}", 500
 
 # הפעלת השרת
 if __name__ == "__main__":
