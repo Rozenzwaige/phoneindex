@@ -14,6 +14,9 @@ app.secret_key = "supersecretkey"  # שנה למפתח חזק יותר
 
 # הגדרות Flask-Session
 app.config['SESSION_TYPE'] = 'filesystem'
+app.config['SESSION_PERMANENT'] = False
+app.config['SESSION_USE_SIGNER'] = True
+app.config['SESSION_COOKIE_NAME'] = 'my_session'
 Session(app)
 
 # הגדרות Flask-Login
@@ -56,7 +59,7 @@ def login():
 @app.route('/callback')
 def callback():
     # ודא שה-state תואם
-    if request.args.get('state') != session['state']:
+    if 'state' not in session or request.args.get('state') != session['state']:
         return "❌ שגיאה: לא תואם state", 400
     
     flow.fetch_token(authorization_response=request.url)
@@ -81,6 +84,7 @@ def callback():
 @login_required
 def logout():
     logout_user()
+    session.clear()
     return redirect(url_for("home"))
 
 # הגדרת GOOGLE_APPLICATION_CREDENTIALS
